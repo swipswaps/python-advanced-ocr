@@ -5,16 +5,11 @@ easyocr>=1.7.0
 surya-ocr>=0.4.0
 pytesseract>=0.3.10
 
-# Image Processing
-opencv-python>=4.8.0
+# Image processing
+opencv-python-headless>=4.8.0
 Pillow>=10.0.0
-pillow-heif>=0.13.0
 numpy>=1.24.0
-scikit-image>=0.21.0
-
-# Web Framework (for GUI)
-flask>=3.0.0
-flask-cors>=4.0.0
+pillow-heif>=0.13.0
 
 # Utilities
 pyyaml>=6.0

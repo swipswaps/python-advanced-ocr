@@ -6,4 +6,20 @@ services:
     image: python-advanced-ocr:latest
     volumes:
       - ./images:/images
+      - ./output:/output
     command: --help
+    
+  # Single image processing
+  ocr-single:
+    image: python-advanced-ocr:latest
+    volumes:
+      - ./images:/images
+    command: --engine paddleocr --input /images/sample.jpg
+    
+  # Batch processing
+  ocr-batch:
+    image: python-advanced-ocr:latest
+    volumes:
+      - ./images:/images
+      - ./output:/output
+    command: --engine paddleocr --input-dir /images --output-dir /output
