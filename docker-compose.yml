@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  ocr:
+    build: .
+    image: python-advanced-ocr:latest
+    volumes:
+      - ./images:/images
+    command: --help
