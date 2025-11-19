@@ -89,12 +89,18 @@ docker run --rm \
 
 ### Using Docker Compose
 
+**Note**: Modern Docker uses `docker compose` (with space), not `docker-compose` (with hyphen).
+
 ```bash
-# Single image
-docker-compose run ocr-single
+# Single image (edit docker-compose.yml first to set your image path)
+docker compose run ocr-single
 
 # Batch processing
-docker-compose run ocr-batch
+docker compose run ocr-batch
+
+# Or use the simpler helper scripts instead (recommended):
+./run.sh images/photo.jpg paddleocr
+./batch_ocr.sh paddleocr
 ```
 
 ## 💻 Direct Installation (Windows/macOS)
