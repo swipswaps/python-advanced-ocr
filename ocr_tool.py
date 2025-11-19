@@ -102,13 +102,15 @@ class OCREngineManager:
                 from paddleocr import PaddleOCR
                 use_gpu = detect_gpu()
                 vprint(f"🔧 Initializing PaddleOCR (one-time setup, GPU: {use_gpu})...")
+                # Note: PaddleOCR 3.x API changes:
+                # - show_log removed
+                # - use_angle_cls -> use_textline_orientation
+                # - use_gpu removed (auto-detects)
+                # - enable_mkldnn removed
+                # - use_mp removed
                 cls._instances['paddleocr'] = PaddleOCR(
-                    use_angle_cls=True,
-                    lang='en',
-                    show_log=False,
-                    use_gpu=use_gpu,
-                    enable_mkldnn=True if not use_gpu else False,  # CPU optimization
-                    use_mp=False,  # Disable multiprocessing for stability
+                    use_textline_orientation=True,
+                    lang='en'
                 )
                 if 'paddleocr' not in cls._available_engines:
                     cls._available_engines.append("paddleocr")
@@ -234,15 +236,70 @@ def process_paddleocr(image_path: str) -> Dict[str, Any]:
         if ocr is None:
             raise Exception("PaddleOCR not available")
 
-        result = ocr.ocr(image_path, cls=True)
+        # PaddleOCR 3.x uses predict() instead of ocr()
+        result = ocr.predict(image_path)
 
         texts = []
         confidences = []
 
-        if result and result[0]:
-            for line in result[0]:
-                texts.append(line[1][0])
-                confidences.append(float(line[1][1]))
+
+
+        # PaddleOCR 3.x returns different structure
+        if isinstance(result, dict):
+            # New PaddleOCR 3.x format
+            if 'rec_text' in result and 'rec_score' in result:
+                # Text recognition results
+                for text, score in zip(result['rec_text'], result['rec_score']):
+                    texts.append(text)
+                    confidences.append(float(score))
+            elif 'dt_polys' in result and 'rec_text' in result:
+                # Detection + recognition results
+                for text, score in zip(result['rec_text'], result.get('rec_score', [])):
+                    texts.append(text)
+                    confidences.append(float(score) if score else 0.0)
+            else:
+                # Unknown dict format, try to extract text
+                vprint(f"DEBUG: Unknown dict format, keys: {list(result.keys())}")
+                raise Exception(f"Unknown PaddleOCR result format: {list(result.keys())}")
+        elif isinstance(result, list) and result:
+            # List format - could be old 2.x or new 3.x list format
+            first_elem = result[0]
+
+            # Check if it's a PaddleX OCRResult object (PaddleOCR 3.x)
+            # OCRResult inherits from dict, so check if it has rec_texts key
+            if hasattr(first_elem, 'get') and first_elem.get('rec_texts') is not None:
+                # New 3.x PaddleX OCRResult object (dict-like)
+                for item in result:
+                    # Access as dict keys
+                    rec_texts = item.get('rec_texts', [])
+                    rec_scores = item.get('rec_scores', [])
+
+                    if isinstance(rec_texts, list):
+                        for i, text in enumerate(rec_texts):
+                            texts.append(text)
+                            if i < len(rec_scores):
+                                confidences.append(float(rec_scores[i]))
+                            else:
+                                confidences.append(0.0)
+                    else:
+                        texts.append(str(rec_texts))
+                        confidences.append(float(rec_scores) if rec_scores else 0.0)
+            elif isinstance(first_elem, dict):
+                # New 3.x list of dicts format
+                for item in result:
+                    if 'rec_text' in item:
+                        texts.append(item['rec_text'])
+                        confidences.append(float(item.get('rec_score', 0.0)))
+            elif isinstance(first_elem, list):
+                # Old 2.x nested list format: [[bbox, (text, confidence)], ...]
+                for line in result:
+                    if len(line) >= 2 and isinstance(line[1], (list, tuple)) and len(line[1]) >= 2:
+                        texts.append(line[1][0])
+                        confidences.append(float(line[1][1]))
+            else:
+                raise Exception(f"Unknown list format, first element type: {type(first_elem)}")
+        else:
+            raise Exception(f"Unexpected result format: {type(result)}")
 
         avg_confidence = sum(confidences) / len(confidences) if confidences else 0.0
 

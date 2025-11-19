@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   ocr:
     build: .
@@ -8,14 +6,14 @@ services:
       - ./images:/images
       - ./output:/output
     command: --help
-    
+
   # Single image processing
   ocr-single:
     image: python-advanced-ocr:latest
     volumes:
       - ./images:/images
     command: --engine paddleocr --input /images/sample.jpg
-    
+
   # Batch processing
   ocr-batch:
     image: python-advanced-ocr:latest
@@ -23,3 +21,12 @@ services:
       - ./images:/images
       - ./output:/output
     command: --engine paddleocr --input-dir /images --output-dir /output
+
+  # Batch processing with custom input directory
+  # Usage: INPUT_DIR=~/Downloads docker compose run --rm ocr-batch-custom --engine paddleocr
+  ocr-batch-custom:
+    image: python-advanced-ocr:latest
+    volumes:
+      - ${INPUT_DIR:-./images}:/input
+      - ${OUTPUT_DIR:-./output}:/output
+    command: --engine paddleocr --input-dir /input --output-dir /output
