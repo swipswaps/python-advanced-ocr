@@ -1,0 +1,150 @@
+================================================================================
+HOW TO USE PYTHON-ADVANCED-OCR ON FEDORA 42/43
+================================================================================
+
+IMPORTANT: This is a COMMAND LINE tool, not a GUI application.
+You run it from the terminal.
+
+================================================================================
+QUICK START (3 STEPS)
+================================================================================
+
+1. BUILD DOCKER IMAGE (one-time, takes 5-10 minutes):
+   
+   cd /home/owner/Documents/sunelec/python-advanced-ocr
+   docker build -t python-advanced-ocr .
+
+
+2. COPY YOUR IMAGE TO images/ DIRECTORY:
+   
+   cp /path/to/your/photo.jpg images/
+   
+   Example:
+   cp ~/Pictures/solar_panel.jpg images/
+
+
+3. RUN OCR:
+   
+   ./run.sh images/photo.jpg paddleocr
+   
+   Example:
+   ./run.sh images/solar_panel.jpg paddleocr
+
+
+That's it! Results will be displayed on screen.
+
+================================================================================
+COMMON COMMANDS
+================================================================================
+
+# Process single image with PaddleOCR (best for noisy images)
+./run.sh images/photo.jpg paddleocr
+
+# Process single image with all engines (compare results)
+./run.sh images/photo.jpg all
+
+# Save results to JSON file
+./run.sh images/photo.jpg paddleocr images/results.json
+
+# Process all images in images/ directory (batch)
+./batch_ocr.sh paddleocr
+
+# View batch results
+cat output/batch_results.json | python3 -m json.tool
+
+================================================================================
+WHICH ENGINE TO USE?
+================================================================================
+
+paddleocr  - Best for noisy/grainy images (solar panels, labels) ⭐ RECOMMENDED
+easyocr    - Good with complex backgrounds
+surya      - Modern, handles mixed content
+tesseract  - Fast, good for clean documents
+all        - Try all engines and compare
+
+================================================================================
+FILE LOCATIONS
+================================================================================
+
+Input images:  /home/owner/Documents/sunelec/python-advanced-ocr/images/
+Batch output:  /home/owner/Documents/sunelec/python-advanced-ocr/output/
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+ERROR: "docker-compose: command not found"
+SOLUTION: Use "docker compose" (with space) or just use ./run.sh instead
+
+ERROR: "permission denied" when running docker
+SOLUTION: sudo usermod -aG docker $USER
+          Then log out and back in
+
+ERROR: "Cannot connect to Docker daemon"
+SOLUTION: sudo systemctl start docker
+
+ERROR: "bash: ./run.sh: Permission denied"
+SOLUTION: chmod +x run.sh batch_ocr.sh
+
+================================================================================
+EXAMPLE WORKFLOW
+================================================================================
+
+# 1. Build Docker image (one-time)
+cd /home/owner/Documents/sunelec/python-advanced-ocr
+docker build -t python-advanced-ocr .
+
+# 2. Copy your image
+cp ~/Pictures/solar_panel.jpg images/
+
+# 3. Run OCR
+./run.sh images/solar_panel.jpg paddleocr
+
+# 4. Results are shown on screen!
+
+# 5. To save results to file:
+./run.sh images/solar_panel.jpg paddleocr images/results.json
+
+# 6. View JSON results:
+cat images/results.json | python3 -m json.tool
+
+================================================================================
+ADVANCED USAGE
+================================================================================
+
+# Check version
+docker run --rm python-advanced-ocr --version
+
+# Quiet mode (minimal output, good for scripts)
+docker run --rm -v $(pwd)/images:/images python-advanced-ocr \
+    --quiet --engine paddleocr --input /images/photo.jpg
+
+# Process with all engines and save comparison
+./run.sh images/photo.jpg all images/comparison.json
+
+# Batch process with progress bar
+./batch_ocr.sh paddleocr
+
+================================================================================
+HELP & DOCUMENTATION
+================================================================================
+
+Full documentation:  README.md
+Fedora guide:        FEDORA_QUICKSTART.md (comprehensive 369-line guide)
+Docker guide:        DOCKER.md
+Version history:     CHANGELOG.md
+GitHub:              https://github.com/swipswaps/python-advanced-ocr
+
+================================================================================
+SUMMARY
+================================================================================
+
+This is a COMMAND LINE OCR tool. You run it from terminal like this:
+
+    ./run.sh images/your-image.jpg paddleocr
+
+The helper scripts (run.sh and batch_ocr.sh) handle all the Docker complexity
+for you. Just copy your images to images/ directory and run the script!
+
+================================================================================
+

@@ -7,26 +7,19 @@ RUN apt-get update && apt-get install -y \
     libsm6 \
     libxext6 \
     libxrender-dev \
-    libgl1-mesa-glx \
+    libgl1 \
     tesseract-ocr \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install Python packages with specific versions
-RUN pip install --no-cache-dir \
-    paddlepaddle==2.6.0 \
-    paddleocr==2.7.3 \
-    easyocr==1.7.1 \
-    surya-ocr==0.4.14 \
-    opencv-python-headless==4.8.1.78 \
-    Pillow==10.1.0 \
-    numpy==1.24.3 \
-    pytesseract==0.3.10 \
-    pillow-heif==0.13.1 \
-    tqdm==4.66.1 \
-    torch==2.1.0
+# Copy requirements file
+COPY requirements.txt .
+
+# Install Python packages from requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy application
 COPY ocr_tool.py .
