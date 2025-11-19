@@ -25,7 +25,8 @@ RUN pip install --no-cache-dir \
     numpy==1.24.3 \
     pytesseract==0.3.10 \
     pillow-heif==0.13.1 \
-    tqdm==4.66.1
+    tqdm==4.66.1 \
+    torch==2.1.0
 
 # Copy application
 COPY ocr_tool.py .
